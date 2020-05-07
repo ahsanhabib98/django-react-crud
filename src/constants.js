@@ -1,4 +1,4 @@
-const localhost = 'http://127.0.0.1:8000';
+const localhost = 'https://dj-crud.herokuapp.com';
 
 const apiURL = '/api';
 const authURL = '/rest-auth';
