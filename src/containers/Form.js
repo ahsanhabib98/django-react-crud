@@ -16,7 +16,8 @@ class ArticleForm extends React.Component {
         this.setState({
             title: article.title,
             description: article.description,
-            image: article.image
+            image: article.image,
+            extra_image: article.image
         })
     };
 
@@ -35,17 +36,31 @@ class ArticleForm extends React.Component {
     handleFormSubmit = async (e, requestType) => {
         e.preventDefault();
 
-        const form_data = new FormData();
-        form_data.append('image', this.state.image, this.state.image.name);
-        form_data.append('title', this.state.title);
-        form_data.append('description', this.state.description);
-
-        if (requestType === "post") {
-            await axios.post(articleCreateURL, form_data, {
+        let contentType = {};
+        let form_data = new FormData();
+        if (this.state.image!==this.state.extra_image) {
+            console.log('if ', this.state)
+            form_data.append('image', this.state.image, this.state.image.name);
+            form_data.append('title', this.state.title);
+            form_data.append('description', this.state.description);
+            contentType = {
                 headers: {
                     'content-type': 'multipart/form-data'
-                }
-            })
+                }}
+        } else {
+            form_data = {...this.state}
+            delete form_data.extra_image
+            delete form_data.image
+            contentType = {
+                headers: {
+                    'content-type': 'application/json'
+                }}
+            console.log('else ', this.state)
+        }
+
+        if (requestType === "post") {
+            console.log(this.state)
+            await axios.post(articleCreateURL, form_data, contentType)
                 .then(res => {
                     if (res.status === 201) {
                         this.props.reset();
@@ -54,11 +69,7 @@ class ArticleForm extends React.Component {
                 })
         } else if (requestType === "put") {
             const articleID = this.props.article.id;
-            await axios.put(articleUpdateURL(articleID), form_data,{
-                headers: {
-                    'content-type': 'multipart/form-data'
-                }
-            })
+            await axios.put(articleUpdateURL(articleID), form_data, contentType)
                 .then(res => {
                     if (res.status === 200) {
                         this.props.reset();
@@ -68,11 +79,8 @@ class ArticleForm extends React.Component {
         }
     };
 
-    handleCheckEmpty = value => {
-
-    };
-
     render() {
+        console.log(this.state);
         return (
             <Fragment>
                 <Form encType="multipart/form-data" onSubmit={(e) => this.handleFormSubmit(e, this.props.requestType)}>
@@ -110,7 +118,9 @@ class ArticleForm extends React.Component {
                             onChange={this.handlePhoto}
                         />
 
-                        <img className="float-right" src={this.state.image} height="200px" width="200px" alt=""/>
+                        {this.state.image && (
+                            <img className="float-right" src={this.state.image} height="200px" width="200px" alt=""/>
+                        )}
 
                     </Form.Group>
                     <Button variant="primary" type="submit">

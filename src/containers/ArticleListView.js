@@ -1,10 +1,11 @@
 import React, {Fragment} from "react";
 import {Alert, Button, Modal, ModalBody, ModalFooter, Spinner, Table} from "react-bootstrap";
 import axios from "axios";
-import {Link} from "react-router-dom";
+import {Link, Redirect} from "react-router-dom";
 import {articleListURL, articleDeleteURL} from "../constants";
 import ModalShow from "./ArticleModalShow";
 import ModalHeader from "react-bootstrap/ModalHeader";
+import {connect} from "react-redux";
 
 class ArticleDelete extends React.Component {
     state = {
@@ -25,14 +26,21 @@ class ArticleDelete extends React.Component {
             });
     };
 
+    handleClick = () => {
+        if (!this.props.isAuthenticated) {
+            this.props.history.push('/login')
+        } else {
+            return this.toggle()
+        }
+    }
+
     render() {
-        const button = <Button variant="danger" onClick={this.toggle} style={{minWidth: "80px"}}>Delete</Button>;
+        const button = <Button variant="danger" onClick={() => this.handleClick()} style={{minWidth: "80px"}}>Delete</Button>;
         return (
             <Fragment>
                 {button}
                 <Modal
                     show={this.state.modal}
-                    toggle={this.toggle}
                 >
                   <ModalHeader>
                       Modal heading
@@ -53,7 +61,7 @@ class ArticleDelete extends React.Component {
 class ArticleList extends React.Component {
 
     state = {
-        data: null,
+        data: [],
         error: null,
         loading: false
     };
@@ -67,86 +75,101 @@ class ArticleList extends React.Component {
         axios.get(articleListURL)
             .then(res => {
                 this.setState({data: res.data, loading: false});
+            })
+            .catch(err => {
+                this.setState({error: err});
             });
     };
 
     render() {
         const {data, error, loading} = this.state;
         return (
-                  <Fragment>
-                      {error && (
-                          <Alert variant="success">
-                            <Alert.Heading>How's it going?!</Alert.Heading>
-                            <p>
-                                not working
-                            </p>
-                            <hr />
-                            <div className="d-flex justify-content-end">
-                              <Button variant="outline-success">
-                                Close me ya'll!
-                              </Button>
-                            </div>
-                          </Alert>
-                      )}
-                      {loading && (
-                          <Spinner animation="border" role="status">
-                              <span className="sr-only">Loading...</span>
-                          </Spinner>
-                      )}
-                      {data && (
-                          <Table striped bordered hover>
-                              <thead>
-                                <tr>
-                                  <th>#</th>
-                                  <th>Title</th>
-                                  <th>Date</th>
-                                  <th colSpan="2"/>
-                                </tr>
-                              </thead>
-                              <tbody>
-                              {data.map((article, i) => {
-                                  return (
-                                      <tr key={article.id}>
-                                          <td>{i+1}</td>
-                                          <td>
-                                              <Link to={`${article.id}/detail`}>
-                                                  {article.title}
-                                              </Link>
-                                          </td>
-                                          <td>{new Date(article.date).toUTCString()}</td>
-                                          <td>
-                                              <ModalShow
-                                                create={false}
-                                                article={article}
-                                                reset={this.handleFetchArticleList}
-                                              />
-                                          </td>
-                                          <td>
-                                              <ArticleDelete
-                                                articleID={article.id}
-                                                reset={this.handleFetchArticleList}
-                                              />
-                                          </td>
-                                      </tr>
-                                  )
-                              })}
-                              <tr>
-                                  <td colSpan="4"/>
-                                  <td>
-                                      <ModalShow
-                                        create={true}
-                                        article={null}
-                                        reset={this.handleFetchArticleList}
-                                      />
-                                  </td>
-                              </tr>
-                              </tbody>
-                          </Table>
-                      )}
-                  </Fragment>
+              <Fragment>
+                  {error && (
+                      <Alert variant="success">
+                        <Alert.Heading>How's it going?!</Alert.Heading>
+                        <p>
+                            not working
+                        </p>
+                        <hr />
+                        <div className="d-flex justify-content-end">
+                          <Button variant="outline-success">
+                            Close me ya'll!
+                          </Button>
+                        </div>
+                      </Alert>
+                  )}
+                  {loading && (
+                      <Spinner animation="border" role="status">
+                          <span className="sr-only">Loading...</span>
+                      </Spinner>
+                  )}
+                  {data && (
+                      <Table striped bordered hover>
+                          <thead>
+                            <tr>
+                              <th>#</th>
+                              <th>Title</th>
+                              <th>Date</th>
+                              <th colSpan="2"/>
+                            </tr>
+                          </thead>
+                          <tbody>
+                          {data.map((article, i) => {
+                              return (
+                                  <tr key={article.id}>
+                                      <td>{i+1}</td>
+                                      <td>
+                                          <Link to={`${article.id}/detail`}>
+                                              {article.title}
+                                          </Link>
+                                      </td>
+                                      <td>{new Date(article.date).toUTCString()}</td>
+                                      <td>
+                                          <ModalShow
+                                            create={false}
+                                            article={article}
+                                            reset={this.handleFetchArticleList}
+                                            history={this.props.history}
+                                            isAuthenticated={this.props.isAuthenticated}
+                                          />
+                                      </td>
+                                      <td>
+                                          <ArticleDelete
+                                            articleID={article.id}
+                                            reset={this.handleFetchArticleList}
+                                            history={this.props.history}
+                                            isAuthenticated={this.props.isAuthenticated}
+                                          />
+                                      </td>
+                                  </tr>
+                              )
+                          })}
+                          <tr>
+                              <td colSpan="4"/>
+                              <td>
+                                  <ModalShow
+                                    create={true}
+                                    article={null}
+                                    reset={this.handleFetchArticleList}
+                                    history={this.props.history}
+                                    isAuthenticated={this.props.isAuthenticated}
+                                  />
+                              </td>
+                          </tr>
+                          </tbody>
+                      </Table>
+                  )}
+              </Fragment>
         )
     }
 }
 
-export default ArticleList;
+const mapStateToProps = state => {
+    return {
+        isAuthenticated: state.token !== null
+    }
+}
+
+export default connect(mapStateToProps, null)(ArticleList);
 

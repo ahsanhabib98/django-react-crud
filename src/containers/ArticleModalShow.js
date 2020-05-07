@@ -1,4 +1,5 @@
 import React, {Fragment} from "react";
+import {connect} from 'react-redux'
 import {Button, Modal, ModalBody, ModalFooter} from "react-bootstrap";
 import ModalHeader from "react-bootstrap/ModalHeader";
 import ArticleForm from "./Form";
@@ -19,9 +20,17 @@ class ModalShow extends React.Component {
         }));
     };
 
+    handleClick = () => {
+        if (!this.props.isAuthenticated) {
+            this.props.history.push('/login')
+        } else {
+            return this.toggle()
+        }
+    }
+
     render() {
         const {create, article} = this.props;
-        let button = <Button variant="warning" onClick={this.toggle} style={{minWidth: "80px"}}>Edit</Button>;
+        let button = <Button variant="warning" onClick={() => this.handleClick()} style={{minWidth: "80px"}}>Edit</Button>;
         let requestType="put";
         if (create) {
             requestType="post";
@@ -29,7 +38,7 @@ class ModalShow extends React.Component {
                 <Button
                     variant="primary"
                     className="float-right"
-                    onClick={this.toggle}
+                    onClick={() => this.handleClick()}
                     style={{minWidth: "100px"}}
                 >
                     Create
@@ -41,7 +50,6 @@ class ModalShow extends React.Component {
                 {button}
                 <Modal
                     show={this.state.modal}
-                    toggle={this.toggle}
                 >
                   <ModalHeader>
                       Modal heading
@@ -73,4 +81,10 @@ class ModalShow extends React.Component {
     }
 }
 
-export default ModalShow;
+const mapStateToProps = state => {
+    return {
+        isAuthenticated: state.token !== null
+    }
+}
+
+export default connect(mapStateToProps, null)(ModalShow);
