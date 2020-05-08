@@ -9,9 +9,9 @@ import SignupForm from "./containers/Signup";
 const BaseRouter = () => (
     <Hoc>
         <Route exact path="/" component={ArticleList} />
-        <Route exact path="/:articleID/detail" component={ArticleDetail} />
-        <Route exact path="/login" component={LoginForm} />
-        <Route exact path="/signup" component={SignupForm} />
+        <Route exact path="/:articleID/detail/" component={ArticleDetail} />
+        <Route exact path="/login/" component={LoginForm} />
+        <Route exact path="/signup/" component={SignupForm} />
     </Hoc>
 );
 
